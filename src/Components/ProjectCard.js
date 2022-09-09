@@ -2,10 +2,14 @@ import React from "react";
 import styled from "styled-components";
 import "swiper/css";
 import "swiper/css/navigation";
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 const ProjectCard = ({ images, caption = " ", name = " " }) => {
+  AOS.init();
+  
   return (
-    <Item>
+    <Item data-aos="fade-left">
       <img src={images[0]} alt={caption} />
       <Description>
         <Subtitle>{name}</Subtitle>
@@ -67,5 +71,5 @@ const Description = styled.div`
   border-radius: 6px;
   transform: translateY(-80px);
   transition: 0.3s linear;
-  box-shadow: 0px 7px 25px rgba(74, 47, 189, 0.8);
+  box-shadow: 0px 7px 25px rgba(21, 114, 182, 0.8);
 `

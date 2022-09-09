@@ -1,92 +1,144 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import styled, { keyframes } from "styled-components";
 import { slideInLeft } from "../Animations/SlideIn";
 import emailjs from "emailjs-com";
+import Reaptcha from "reaptcha";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const Contact = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
+  AOS.init();
+
+  const initialValues = { name: "", email: "", message: "" };
   const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [isValidForm, setIsValidForm] = useState(false);
+  const [formValues, setFormValues] = useState(initialValues);
+  const [formErrors, setFormErrors] = useState({});
+
+  const captchaRef = useRef(null);
 
   const isValidEmail = () => {
-    const regex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
-    return regex.test(String(email).toLowerCase());
+    const regex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    return regex.test(String(formValues.email).toLowerCase());
   };
 
-  const submit = (e) => {
+  const onVerify = () => {
+    captchaRef.current.getResponse().then(() => {
+      setIsVerified(true);
+    });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormValues({ ...formValues, [name]: value });
+  };
+
+  const validateForm = (values) => {
+    const errors = {};
+
+    if (!values.name) {
+      errors.name = "Name is required";
+    }
+
+    if (!values.message) {
+      errors.message = "Message is required";
+    }
+
+    if (!values.email) {
+      errors.email = "Email is required";
+    } else if (!isValidEmail()) {
+      errors.email = "Enter a valid email";
+    }
+
+    setIsValidForm(Object.keys(errors).length === 0);
+    return errors;
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (name && email && message && isValidEmail) {
+    setFormErrors(validateForm(formValues));
+
+    if (isValidForm) {
       const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
       const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
       const userId = process.env.REACT_APP_EMAILJS_USER_ID;
 
-      const templateParams = {
-        name,
-        email,
-        message,
-      };
+      const templateParams = formValues;
 
       setIsSubmitting(true);
-      
+
       emailjs
         .send(serviceId, templateId, templateParams, userId)
-        .then((response) => {
-          console.log(response);
-          setName("");
-          setEmail("");
-          setMessage("");
+        .then((_response) => {
           setEmailSent(true);
-          setIsSubmitting(false);
+          setEmailError(false);
         })
-        .then((error) => console.log(error));
-    } else {
-      alert("Please fill in all fields.");
+        .catch(() => setEmailError(true))
+        .finally(() => {
+          setIsSubmitting(false);
+          setIsVerified(false);
+          captchaRef.current.reset();
+        });
     }
   };
 
   return (
     <Section id="contact">
       <Title>Contact</Title>
-      <Container>
+      <Container data-aos="fade-right">
         <Subtitle> Have a question or want to work together? </Subtitle>
         <Form>
           <Input
             type="text"
             name="name"
             placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={formValues.name}
+            onChange={handleChange}
           />
+          <SubmitErrorMessage>{formErrors.name}</SubmitErrorMessage>
           <Input
             type="email"
             name="email"
             placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formValues.email}
+            onChange={handleChange}
           />
+          <SubmitErrorMessage>{formErrors.email}</SubmitErrorMessage>
           <Textarea
             name="message"
             rows="5"
             placeholder="Your message here"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            value={formValues.message}
+            onChange={handleChange}
           ></Textarea>
+          <SubmitErrorMessage>{formErrors.message}</SubmitErrorMessage>
 
-          {/*<div className="g-recaptcha" data-sitekey="your_site_key"></div>
-          <br />*/}
-          <SubmitButton onClick={submit} disabled={isSubmitting}>
-            {isSubmitting && (
-              <LoaderDualRing />
-            )}
+          <Reaptcha
+            sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+            ref={captchaRef}
+            onVerify={onVerify}
+          />
+
+          <SubmitButton
+            onClick={handleSubmit}
+            disabled={isSubmitting || !isVerified}
+          >
+            {isSubmitting && <LoaderDualRing />}
             Submit
           </SubmitButton>
 
           <SubmitMessage emailSent={emailSent}>
             Thank you for your message, I will be in touch soon!
           </SubmitMessage>
+          {emailError && (
+            <SubmitErrorMessage>
+              Your message couldn't be send, please try again later.
+            </SubmitErrorMessage>
+          )}
         </Form>
       </Container>
     </Section>
@@ -183,7 +235,7 @@ const SubmitButton = styled.button`
 
   &:hover,
   &:focus {
-    background: rgba(74, 47, 189, 0.8);
+    background: rgba(21, 114, 182, 0.8);
     outline: 0;
     border: none;
     transition: background-color 2s ease-out;
@@ -196,6 +248,12 @@ const SubmitMessage = styled.span`
   padding: 5px 0;
   visibility: ${(props) => (props.emailSent ? "visible" : "hidden")};
 `;
+const SubmitErrorMessage = styled.span`
+  color: red;
+  font-size: ${(props) => props.theme.fontsm};
+  font-weight: 600;
+  padding: 5px 0;
+`;
 const LoaderRotate = keyframes`
 0% {
     transform: rotate(0deg);
@@ -205,8 +263,8 @@ const LoaderRotate = keyframes`
 }
 `;
 const LoaderDualRing = styled.span`
- display: inline-block;
- height: 1rem;
+  display: inline-block;
+  height: 1rem;
 
   &::after {
     content: " ";

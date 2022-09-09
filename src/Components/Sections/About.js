@@ -10,13 +10,17 @@ import ReactIcon from "../../Assets/Icons/ReactIcon";
 import SqlIcon from "../../Assets/Icons/SqlIcon";
 import SpringBootIcon from "../../Assets/Icons/SpringbootIcon";
 import Picture from "../../Assets/The-Simpsons-Profile-Icons-2.webp";
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 const About = () => {
+  AOS.init();
+
   return (
     <Section id="about">
-      <ProfilePic src={Picture} alt="Profile Picture" />
+      <ProfilePic src={Picture} alt="Profile Picture" data-aos="fade-in"/>
       <Container>
-        <Box>
+        <Box data-aos="fade-right">
           <Title>Who is Eliezer?</Title>
           <Subtitle>
             I'm a professional full stack developer with over 6 years of
@@ -25,7 +29,7 @@ const About = () => {
             pyme for 3 years, moved to Peru in 2018 where I have been working for different companies.
           </Subtitle>
         </Box>
-        <Box>
+        <Box data-aos="fade-left">
           <Title>Technologies I use</Title>
           <Skills>
             <HtmlIcon />
@@ -38,6 +42,9 @@ const About = () => {
             <NodeJsIcon />
             <ReactIcon />
           </Skills>
+          <Button>
+            Resume
+          </Button>
         </Box>
       </Container>
     </Section>
@@ -131,4 +138,24 @@ const ProfilePic = styled.img`
   box-shadow: 0 2px 0 2px ${(props) => props.theme.text};
   width: 250px;
   height: auto;
+`;
+const Button = styled.button`
+  background: transparent;
+  color: #fff;
+  font-size: ${(props) => props.theme.fontmd};
+  margin: 1rem auto;
+  outline: 0;
+  padding: 10px 30px;
+  border: 2px solid #fff;
+  box-sizing: inherit;
+  cursor: pointer;
+  transition: all 0.5s;
+
+  &:hover,
+  &:focus {
+    background: rgba(21, 114, 182, 0.8);
+    outline: 0;
+    border: none;
+    transition: background-color 2s ease-out;
+  }
 `;

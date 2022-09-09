@@ -17,6 +17,7 @@ import { slideInRight } from "../Animations/SlideIn";
 import ProjectCard from "../ProjectCard";
 
 const Portfolio = () => {
+
   return (
     <Section id="portfolio">
       <Title>Portfolio</Title>

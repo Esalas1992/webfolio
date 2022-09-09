@@ -16,7 +16,7 @@ function App() {
         <ThemeProvider theme={dark}>
           <Socials />
           <Home />
-          <About />
+          <About data-aos="fade-in"/>
           <Portfolio />
           <Contact />
         </ThemeProvider>
